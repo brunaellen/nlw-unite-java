@@ -13,14 +13,16 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import rocketseat.com.passin.domain.event.Event;
+import rocketseat.com.passin.domain.event.exceptions.EventNotFoundException;
 import rocketseat.com.passin.dto.event.EventResponseDTO;
 import rocketseat.com.passin.services.AttendeeService;
 import rocketseat.com.passin.services.EventService;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = EventController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -49,9 +51,28 @@ class EventControllerTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(eventResponseDTO)));
 
-    response.andExpect(MockMvcResultMatchers.status().isOk())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.event.attendeesAmount",
-            CoreMatchers.is(eventResponseDTO.getEvent().attendeesAmount())));
+    response
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.event.attendeesAmount",
+            CoreMatchers.is(eventResponseDTO.getEvent().attendeesAmount())))
+        .andExpect(jsonPath("$.event.title",
+            CoreMatchers.is(eventResponseDTO.getEvent().title())))
+        .andExpect(jsonPath("$.event.details",
+            CoreMatchers.is(eventResponseDTO.getEvent().details())))
+        .andExpect(jsonPath("$.event.slug",
+            CoreMatchers.is(eventResponseDTO.getEvent().slug())))
+        .andExpect(jsonPath("$.event.maximumAttendees",
+            CoreMatchers.is(eventResponseDTO.getEvent().maximumAttendees())));
 
+  }
+
+  @Test
+  void getEvent_givenInvalidEventId_throwsEventNotFoundException() throws Exception {
+    when(eventService.getEventDetail(ArgumentMatchers.any())).thenThrow(EventNotFoundException.class);
+
+    ResultActions response = mockMvc.perform(get("/events/1")
+        .contentType(MediaType.APPLICATION_JSON));
+
+    response.andExpect(status().is4xxClientError());
   }
 }
