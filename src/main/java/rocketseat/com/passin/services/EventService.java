@@ -24,11 +24,16 @@ public class EventService {
     private final EventRepository eventRepository;
     private final AttendeeService  attendeeService;
 
+    //Ivone
     public EventResponseDTO getEventDetail(String eventId){
+        //Raquel
         Event event = this.getEventById(eventId);
+
+        //Elaine
         List<Attendee> attendeeList = this.attendeeService.getAllAttendeesFromEvent(eventId);
         return new EventResponseDTO(event, attendeeList.size());
     }
+
     public EventIdDTO createEvent(EventRequestDTO eventDTO){
         Event newEvent = new Event();
         newEvent.setTitle(eventDTO.title());
